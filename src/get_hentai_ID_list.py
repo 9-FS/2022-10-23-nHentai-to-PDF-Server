@@ -25,8 +25,9 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
     - hentai_ID_list: list of hentai ID to download
     """
 
-    file_tried: bool=False          # tried to load from file?
-    hentai_ID_list: list[int]=[]    # hentai ID list
+    file_tried: bool=False                  # tried to load from file?
+    hentai_ID_in_dropbox_list: list[str]    # list of hentai ID already downloaded and in dropbox, don't redownload these
+    hentai_ID_list: list[int]=[]            # hentai ID list
     hentai_ID_list_str: list[str]
 
 
@@ -41,6 +42,11 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
         hentai_ID_list_str=[hentai_ID for hentai_ID in hentai_ID_list_str if len(hentai_ID)!=0] # remove empty inputs
         if len(hentai_ID_list_str)==0:                                                          # if file or user input empty: retry
             continue
+
+        logging.info("Removing already downloaded ID...")
+        hentai_ID_in_dropbox_list=[os.path.splitext(hentai_filename)[0].split(" ")[0] for hentai_filename in KFSdropbox.list_files(dbx, dropbox_config["dropbox_dest_path"])]   # download list of already downloaded hentai, convert filename to ID only
+        hentai_ID_list_str=[hentai_ID for hentai_ID in hentai_ID_list_str if hentai_ID not in hentai_ID_in_dropbox_list]                                                        # filter out already downloaded ID, do this in any case also if list loaded from downloadme.txt
+        logging.info("Removed already downloaded ID.")
 
         for hentai_ID in hentai_ID_list_str:    # convert all hentai ID to int
             try:
@@ -69,7 +75,6 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     """
 
     hentai_ID_list_str: list[str]=[]        # list of hentai ID to download
-    hentai_ID_in_dropbox_list: list[str]    # list of hentai ID already downloaded and in dropbox, don't redownload these
     hentai_ID_new: list[str]
     NHENTAI_SEARCH_API_URL: str="https://nhentai.net/api/galleries/search"
     page_no_current: int=1
@@ -94,11 +99,6 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
 
     hentai_ID_list_str=list(dict.fromkeys(hentai_ID_list_str))  # remove duplicates
     hentai_ID_list_str.sort()                                   # sort
-
-    logging.info("Removing already downloaded ID...")
-    hentai_ID_in_dropbox_list=[os.path.splitext(hentai_filename)[0].split(" ")[0] for hentai_filename in KFSdropbox.list_files(dbx, dropbox_config["dropbox_dest_path"])]   # download list of already downloaded hentai, convert filename to ID only
-    hentai_ID_list_str=[hentai_ID for hentai_ID in hentai_ID_list_str if hentai_ID not in hentai_ID_in_dropbox_list]                                                        # filter out ID that are already downloaded
-    logging.info("Removed already downloaded ID.")
 
     logging.info("Saving hentai ID list in \"downloadme.txt\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
     with open("downloadme.txt", "wt") as h_ID_list_file:
