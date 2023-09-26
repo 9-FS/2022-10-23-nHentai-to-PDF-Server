@@ -1,0 +1,10 @@
+*.exe
+*.json
+*.log
+*.pyc
+*.token
+/doc_templates/
+/hentai/
+/log/
+/src/test.py
+downloadme.txt
