@@ -201,6 +201,6 @@ def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[s
         break
 
 
-    hentai_ID_list_str=[hentai["id"] for hentai in search["result"]]    # parse all hentai ID
+    hentai_ID_list_str=[str(hentai["id"]) for hentai in search["result"]]   # parse all hentai ID, ensure really string
 
     return hentai_ID_list_str
