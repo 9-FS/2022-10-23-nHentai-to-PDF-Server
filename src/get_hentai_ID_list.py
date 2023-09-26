@@ -16,8 +16,8 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
     Tries to return hentai ID list to download by trying to load "./downloadme.txt" or by searching on nhentai.net for all hentai ID with tag dropbox_config["tag"].
 
     Arguments:
-    - cookies: cookies to send with the request to bypass cloudflare
-    - headers: user agent to send with the request to bypass cloudflare
+    - cookies: cookies to send with the request to bypass bot protection
+    - headers: user agent to send with the request to bypass bot protection
     - dbx: dropbox instance
     - dropbox_config: dropbox configuration
 
@@ -59,8 +59,8 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     Tries to return hentai ID list to download by searching on nhentai.net for all hentai ID with tag dropbox_config["tag"].
 
     Arguments:
-    - cookies: cookies to send with the request to bypass cloudflare
-    - headers: user agent to send with the request to bypass cloudflare
+    - cookies: cookies to send with the request to bypass bot protection
+    - headers: user agent to send with the request to bypass bot protection
     - dbx: dropbox instance
     - dropbox_config: dropbox configuration
 
