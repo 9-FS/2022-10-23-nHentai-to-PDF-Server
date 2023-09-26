@@ -26,41 +26,32 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
     """
 
     file_tried: bool=False                  # tried to load from file?
-    hentai_ID_in_dropbox_list: list[str]    # list of hentai ID already downloaded and in dropbox, don't redownload these
-    hentai_ID_list: list[int]=[]            # hentai ID list
-    hentai_ID_list_str: list[str]
+    hentai_ID_in_dropbox_list: list[int]    # list of hentai ID already downloaded and in dropbox, don't redownload these
+    hentai_ID_list: list[int]=[]            # hentai ID list to download
 
 
     while True:
-        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                  # if ID list in file and not tried to load from file yet: load from file, only try once
+        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                      # if ID list in file and not tried to load from file yet: load from file, only try once
             file_tried=True
             with open("downloadme.txt", "rt") as downloadme_file:
-                hentai_ID_list_str=downloadme_file.readlines()                                              # read all lines from file
-        else:                                                                                               # if ID list file not available: ask user for input
-            hentai_ID_list_str=_get_hentai_ID_list_from_tag_search(cookies, headers, dbx, dropbox_config)   # get hentai ID list by searching by tag
+                hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.readlines())   # read all hentai ID from file, list[int] -> list[str]
+        else:                                                                                                   # if ID list file not available: ask user for input
+            hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, dbx, dropbox_config)           # get hentai ID list by searching by tag
         
-        hentai_ID_list_str=[hentai_ID for hentai_ID in hentai_ID_list_str if len(hentai_ID)!=0] # remove empty inputs
-        if len(hentai_ID_list_str)==0:                                                          # if file or user input empty: retry
+        if len(hentai_ID_list)==0:  # if file or user input empty: retry
             continue
 
         logging.info("Removing already downloaded ID...")
-        hentai_ID_in_dropbox_list=[os.path.splitext(hentai_filename)[0].split(" ")[0] for hentai_filename in KFSdropbox.list_files(dbx, dropbox_config["dropbox_dest_path"])]   # download list of already downloaded hentai, convert filename to ID only
-        hentai_ID_list_str=[hentai_ID for hentai_ID in hentai_ID_list_str if hentai_ID not in hentai_ID_in_dropbox_list]                                                        # filter out already downloaded ID, do this in any case also if list loaded from downloadme.txt
+        hentai_ID_in_dropbox_list=[int(os.path.splitext(hentai_filename)[0].split(" ")[0]) for hentai_filename in KFSdropbox.list_files(dbx, dropbox_config["dropbox_dest_path"])]  # download list of already downloaded hentai, convert filename to ID only
+        hentai_ID_list=[hentai_ID for hentai_ID in hentai_ID_list if hentai_ID not in hentai_ID_in_dropbox_list]                                                                    # filter out already downloaded ID, do this in any case also if list loaded from downloadme.txt
         logging.info("Removed already downloaded ID.")
 
-        for hentai_ID in hentai_ID_list_str:    # convert all hentai ID to int
-            try:
-                hentai_ID_list.append(int(hentai_ID))
-            except ValueError:                  # if input invalid: discard whole input, ask user (again)
-                logging.error(f"Converting input \"{hentai_ID}\" to int failed.")
-                break
-        else:                                   # if all ID converted without failure: break out of while, return desired ID
-            break
+        break
     
     return hentai_ID_list
 
 
-def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[str, str], dbx: dropbox.Dropbox, dropbox_config: dict[str, str]) -> list[str]:
+def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[str, str], dbx: dropbox.Dropbox, dropbox_config: dict[str, str]) -> list[int]:
     """
     Tries to return hentai ID list to download by searching on nhentai.net for all hentai ID with tag dropbox_config["tag"].
 
@@ -74,8 +65,8 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     - hentai_ID_list_str: list of hentai ID to download
     """
 
-    hentai_ID_list_str: list[str]=[]        # list of hentai ID to download
-    hentai_ID_new: list[str]
+    hentai_ID_list: list[int]=[]    # list of hentai ID to download
+    hentai_ID_new: list[int]
     NHENTAI_SEARCH_API_URL: str="https://nhentai.net/api/galleries/search"
     page_no_current: int=1
     page_no_max: int                        # number of pages a nhentai search by tag would return
@@ -90,22 +81,20 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as thread_manager:
         search_requests=[requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": dropbox_config["tag"], "sort": "popular", "page": page_no}).prepare() for page_no in range(1, page_no_max+1)]   # prepare beforehand to generate full URL from params
         for hentai_ID_new in thread_manager.map(_search_hentai_ID_by_tag, search_requests):                                                                                                                                                 # search by tag on all pages
-            hentai_ID_list_str+=hentai_ID_new
+            hentai_ID_list+=hentai_ID_new
             logging.info(f"\rDownloaded hentai ID from \"{search_requests[page_no_current-1].url}\", page {KFSfstr.notation_abs(page_no_current, 0, round_static=True)}/{KFSfstr.notation_abs(page_no_max, 0, round_static=True)}.") 
             logging.debug(hentai_ID_new)
             logging.debug("")
             page_no_current+=1
 
-
-    hentai_ID_list_str=list(dict.fromkeys(hentai_ID_list_str))  # remove duplicates
-    hentai_ID_list_str.sort()                                   # sort
+    hentai_ID_list=sorted(list(dict.fromkeys(hentai_ID_list)))  # remove duplicates, sort numerically
 
     logging.info("Saving hentai ID list in \"downloadme.txt\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
     with open("downloadme.txt", "wt") as h_ID_list_file:
-        h_ID_list_file.write("\n".join([str(hentai_ID) for hentai_ID in hentai_ID_list_str]))
+        h_ID_list_file.write("\n".join([str(hentai_ID) for hentai_ID in hentai_ID_list]))
     logging.info("\rSaved hentai ID list in \"downloadme.txt\".")
 
-    return hentai_ID_list_str
+    return hentai_ID_list
 
 
 def _get_page_no_max_by_tag(search_request: requests.PreparedRequest) -> int:
@@ -155,7 +144,7 @@ def _get_page_no_max_by_tag(search_request: requests.PreparedRequest) -> int:
     return page_no_max
 
 
-def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[str]:
+def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[int]:
     """
     Searches for nhentai ID by tag on page page_no.
 
@@ -169,7 +158,7 @@ def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[s
     - requests.HTTPError: Downloading tag search from \"{NHENTAI_SEARCH_API_URL}\" with params={"query": tag, "sort": "popular", "page": PAGE_NO,} failed multiple times.
     """
 
-    hentai_ID_list_str: list[str]
+    hentai_ID_list: list[int]=[]    # list of hentai ID found by searching by tag on page page_no
     search: dict
     search_page: requests.Response
 
@@ -188,8 +177,8 @@ def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[s
             logging.error(f"Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
             raise requests.HTTPError(f"Error in {_search_hentai_ID_by_tag.__name__}{inspect.signature(_search_hentai_ID_by_tag)}: Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
         if search_page.status_code==404:                                                # if status code 404 (not found): nhenati API is sus and randomly does not have some search result pages
-            hentai_ID_list_str=[]                                                           # just return empty list
-            return hentai_ID_list_str
+            hentai_ID_list=[]                                                           # just return empty list
+            return hentai_ID_list
         if search_page.ok==False:
             time.sleep(1)
             if attempt_no<3:                                                            # try 3 times
@@ -201,6 +190,34 @@ def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[s
         break
 
 
-    hentai_ID_list_str=[str(hentai["id"]) for hentai in search["result"]]   # parse all hentai ID, ensure really string
+    hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int([hentai["id"] for hentai in search["result"]]) # parse all hentai ID, list[str] -> list[int]
 
-    return hentai_ID_list_str
+    return hentai_ID_list
+
+
+def _convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str: list[str]) -> list[int]:
+    """
+    Converts list of hentai ID from list[str] to list[int] cleans up entries.
+
+    Arguments:
+    - hentai_ID_list_str: list of hentai ID in str to convert
+
+    Returns:
+    - hentai_ID_list: list of hentai ID in int
+    """
+
+    hentai_ID_list: list[int]=[]    # list of hentai ID in int
+
+
+    hentai_ID_list_str=[hentai_ID for hentai_ID in hentai_ID_list_str if len(hentai_ID)!=0] # throw out emtpy entries
+    hentai_ID_list_str=list(dict.fromkeys(hentai_ID_list_str))                              # remove duplicates
+
+    for hentai_ID in hentai_ID_list_str:                                                    # list[str] -> list[int]
+        try:
+            hentai_ID_list.append(int(hentai_ID))
+        except ValueError:                                                                  # if input invalid: discard that, keep rest
+            logging.error(f"Converting input \"{hentai_ID}\" to int failed. Skipping ID.")
+            
+    hentai_ID_list=sorted(hentai_ID_list)                                                   # sort numerically
+
+    return hentai_ID_list
