@@ -5,6 +5,7 @@ from KFSconfig  import KFSconfig
 from KFSdropbox import KFSdropbox
 from KFSfstr    import KFSfstr
 from KFSlog     import KFSlog
+from KFSmedia   import KFSmedia
 from KFSsleep   import KFSsleep
 import logging
 import os
@@ -69,7 +70,7 @@ def main():
                 hentai.download()                               # download hentai
             except FileExistsError:                             # if hentai already exists:
                 continue                                        # skip to next hentai
-            except Hentai.DownloadError:
+            except KFSmedia.DownloadError:
                 with open("FAILURES.txt", "at") as fails_file:  # append in failure file
                     fails_file.write(f"{hentai.ID}\n")
                 continue                                        # skip to next hentai
