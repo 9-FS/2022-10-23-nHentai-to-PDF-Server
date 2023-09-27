@@ -16,7 +16,9 @@ Author: "구FS"
 
 ## 1. General
 
-This is the nHentai downloader I wrote to archive as much of the [english nHentai library](https://nhentai.net/language/english/popular) as I can. This server version builds upon the original [nhentai to PDF downloader](https://github.com/9-FS/2021-11-15-nHentai-to-PDF) and automates the creation of a `downloadme.txt`, downloading the hentai, and finally uploading it to a dropbox folder of your choosing. It basically syncs part of the nhentai library (a tag of your choice) to your dropbox. I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
+This is the nHentai downloader I wrote to archive as much of the [english nHentai library](https://nhentai.net/language/english/popular) as I can. This server version builds upon the original [nhentai to PDF downloader](https://github.com/9-FS/2021-11-15-nHentai-to-PDF) and automates the creation of a `downloadme.txt`, downloading the hentai, and finally uploading it to a dropbox folder of your choosing. It basically syncs part of the nhentai library (a tag of your choice) to your dropbox.  
+Big thanks go out to [h3nTa1m4st3r_xx69](https://github.com/sam-k0), who helped me using nhentai's completely undocumented API. Without him this project could not have been reactivated.  
+I'm happy about anyone who finds my software useful and feedback is also always welcome. Happy downloading~
 
 ## 2. How to Set Up
 ### 2.1. Connection to nhentai.net (with Google Chrome)
