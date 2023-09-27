@@ -31,12 +31,12 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
 
 
     while True:
-        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                      # if ID list in file and not tried to load from file yet: load from file, only try once
+        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                              # if ID list in file and not tried to load from file yet: load from file, only try once
             file_tried=True
-            with open("downloadme.txt", "rt") as downloadme_file:
-                hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.readlines())   # read all hentai ID from file, list[int] -> list[str], clean up data
-        else:                                                                                                   # if ID list file not available: ask user for input
-            hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, dropbox_config["tag"])         # get hentai ID list by searching by tag, list[str] -> list[int], clean up data
+            with open("./downloadme.txt", "rt") as downloadme_file:
+                hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.read().split("\n"))    # read all hentai ID from file, list[int] -> list[str], clean up data
+        else:                                                                                                           # if ID list file not available: ask user for input
+            hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, dropbox_config["tag"])                 # get hentai ID list by searching by tag, list[str] -> list[int], clean up data
             
             logging.info("Saving hentai ID list in \"downloadme.txt\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
             with open("downloadme.txt", "wt") as hentai_ID_list_file:
@@ -75,7 +75,7 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     hentai_ID_new: list[str]
     NHENTAI_SEARCH_API_URL: str="https://nhentai.net/api/galleries/search"
     page_no_current: int=1
-    page_no_max: int                        # number of pages a nhentai search by tag would return
+    page_no_max: int                    # number of pages a nhentai search by tag would return
 
 
     search_request=requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": tag, "sort": "popular", "page": 1}).prepare() # prepare beforehand to generate full URL from params
