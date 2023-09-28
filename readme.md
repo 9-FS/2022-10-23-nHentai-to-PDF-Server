@@ -31,6 +31,9 @@ I'm happy about anyone who finds my software useful and feedback is also always 
 1. Execute the program again. This will create a default `headers.json`.
 1. Go to https://www.whatismybrowser.com/detect/what-is-my-user-agent/ and copy your user agent into `headers.json`.
 
+> :information_source:  
+> This seems to be required daily nowadays.
+
 ### 2.2. Connection to dropbox.com
 1. Execute the program again. This will create a default `dropbox_API_cred.json`.
 1. Go to https://stackoverflow.com/questions/70641660/how-do-you-get-and-use-a-refresh-token-for-the-dropbox-api-python-3-x and follow the accepted answer's steps to get your dropbox API credentials. Copy your credentials into `dropbox_API_cred.json`.
