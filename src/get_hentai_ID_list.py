@@ -1,9 +1,7 @@
 # Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import concurrent.futures
-import dropbox
 import inspect
 import json
-from KFSdropbox import KFSdropbox
 from KFSfstr    import KFSfstr
 import requests
 import time
@@ -11,23 +9,21 @@ import logging
 import os
 
 
-def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dropbox.Dropbox, dropbox_config: dict[str, str]) -> list[int]:
+def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], nhentai_tag: str) -> list[int]:
     """
-    Tries to return hentai ID list to download by trying to load "./downloadme.txt" or by searching on nhentai.net for all hentai ID with tag dropbox_config["tag"].
+    Tries to return hentai ID list to download by trying to load "./downloadme.txt" or by searching on nhentai.net for all hentai ID with tag nhentai_tag.
 
     Arguments:
     - cookies: cookies to send with the request to bypass bot protection
     - headers: user agent to send with the request to bypass bot protection
-    - dbx: dropbox instance
-    - dropbox_config: dropbox configuration
+    - nhentai_tag: download hentai with this tag
 
     Returns:
     - hentai_ID_list: list of hentai ID to download
     """
 
-    file_tried: bool=False                  # tried to load from file?
-    hentai_ID_in_dropbox_list: list[int]    # list of hentai ID already downloaded and in dropbox, don't redownload these
-    hentai_ID_list: list[int]=[]            # hentai ID list to download
+    file_tried: bool=False          # tried to load from file?
+    hentai_ID_list: list[int]=[]    # hentai ID list to download
 
 
     while True:
@@ -36,7 +32,7 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
             with open("./downloadme.txt", "rt") as downloadme_file:
                 hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.read().split("\n"))    # read all hentai ID from file, list[int] -> list[str], clean up data
         else:                                                                                                           # if ID list file not available: ask user for input
-            hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, dropbox_config["tag"])                 # get hentai ID list by searching by tag, list[str] -> list[int], clean up data
+            hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, nhentai_tag)                           # get hentai ID list by searching by tag, list[str] -> list[int], clean up data
             
             logging.info("Saving hentai ID list in \"downloadme.txt\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
             with open("downloadme.txt", "wt") as hentai_ID_list_file:
@@ -46,25 +42,19 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], dbx: dr
         if len(hentai_ID_list)==0:  # if file or user input empty: retry
             continue
 
-        logging.info("Removing already downloaded ID...")
-        hentai_ID_in_dropbox_list=[int(os.path.splitext(hentai_filename)[0].split(" ")[0]) for hentai_filename in KFSdropbox.list_files(dbx, dropbox_config["dropbox_dest_path"])]  # download list of already downloaded hentai, convert filename to ID only
-        hentai_ID_list=[hentai_ID for hentai_ID in hentai_ID_list if hentai_ID not in hentai_ID_in_dropbox_list]                                                                    # filter out already downloaded ID, do this in any case also if list loaded from downloadme.txt
-        logging.info("Removed already downloaded ID.")
-
         break
     
     return hentai_ID_list
 
 
-def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[str, str], tag: str) -> list[int]:
+def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[str, str], nhentai_tag: str) -> list[int]:
     """
-    Tries to return hentai ID list to download by searching on nhentai.net for all hentai ID with tag dropbox_config["tag"].
+    Tries to return hentai ID list to download by searching on nhentai.net for all hentai ID with tag nhentai_tag.
 
     Arguments:
     - cookies: cookies to send with the request to bypass bot protection
     - headers: user agent to send with the request to bypass bot protection
-    - dbx: dropbox instance
-    - dropbox_config: dropbox configuration
+    - nhentai_tag: download hentai with this tag
 
     Returns:
     - hentai_ID_list_str: list of hentai ID to download
@@ -78,15 +68,15 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     page_no_max: int                    # number of pages a nhentai search by tag would return
 
 
-    search_request=requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": tag, "sort": "popular", "page": 1}).prepare() # prepare beforehand to generate full URL from params
+    search_request=requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": nhentai_tag, "sort": "popular", "page": 1}).prepare() # prepare beforehand to generate full URL from params
     page_no_max=_get_page_no_max_by_tag(search_request)    
-    logging.debug(f"Searching by tag\"{tag}\" results in {KFSfstr.notation_abs(page_no_max, 0, round_static=True)} number of pages.")                               # get page_no_max by searching by tag
+    logging.debug(f"Searching by tag\"{nhentai_tag}\" results in {KFSfstr.notation_abs(page_no_max, 0, round_static=True)} number of pages.")                               # get page_no_max by searching by tag
     
 
     logging.info("")
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as thread_manager:
-        search_requests=[requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": tag, "sort": "popular", "page": page_no}).prepare() for page_no in range(1, page_no_max+1)] # prepare beforehand to generate full URL from params
-        for hentai_ID_new in thread_manager.map(_search_hentai_ID_by_tag, search_requests):                                                                                                                             # search by tag on all pages
+        search_requests=[requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": nhentai_tag, "sort": "popular", "page": page_no}).prepare() for page_no in range(1, page_no_max+1)] # prepare beforehand to generate full URL from params
+        for hentai_ID_new in thread_manager.map(_search_hentai_ID_by_tag, search_requests):                                                                                                                                     # search by tag on all pages
             hentai_ID_list_str+=hentai_ID_new
             logging.info(f"\rDownloaded hentai ID from \"{search_requests[page_no_current-1].url}\", page {KFSfstr.notation_abs(page_no_current, 0, round_static=True)}/{KFSfstr.notation_abs(page_no_max, 0, round_static=True)}.") 
             logging.debug(hentai_ID_new)
