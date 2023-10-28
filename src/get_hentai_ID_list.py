@@ -11,7 +11,7 @@ import os
 
 def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], nhentai_tag: str) -> list[int]:
     """
-    Tries to return hentai ID list to download by trying to load "./downloadme.txt" or by searching on nhentai.net for all hentai ID with tag nhentai_tag.
+    Tries to return hentai ID list to download by trying to load "./config/downloadme.txt" or by searching on nhentai.net for all hentai ID with tag nhentai_tag.
 
     Arguments:
     - cookies: cookies to send with the request to bypass bot protection
@@ -22,22 +22,23 @@ def get_hentai_ID_list(cookies: dict[str, str], headers: dict[str, str], nhentai
     - hentai_ID_list: list of hentai ID to download
     """
 
-    file_tried: bool=False          # tried to load from file?
-    hentai_ID_list: list[int]=[]    # hentai ID list to download
+    DOWNLOADME_FILEPATH: str="./config/downloadme.txt"  # path to file containing hentai ID to download
+    file_tried: bool=False                              # tried to load from file?
+    hentai_ID_list: list[int]=[]                        # hentai ID list to download
 
 
     while True:
-        if os.path.isfile("./downloadme.txt")==True and file_tried==False:                                              # if ID list in file and not tried to load from file yet: load from file, only try once
+        if os.path.isfile(DOWNLOADME_FILEPATH)==True and file_tried==False:                                             # if ID list in file and not tried to load from file yet: load from file, only try once
             file_tried=True
-            with open("./downloadme.txt", "rt") as downloadme_file:
+            with open(DOWNLOADME_FILEPATH, "rt") as downloadme_file:
                 hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.read().split("\n"))    # read all hentai ID from file, list[int] -> list[str], clean up data
         else:                                                                                                           # if ID list file not available: ask user for input
             hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, nhentai_tag)                           # get hentai ID list by searching by tag, list[str] -> list[int], clean up data
             
-            logging.info("Saving hentai ID list in \"downloadme.txt\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
-            with open("downloadme.txt", "wt") as hentai_ID_list_file:
+            logging.info(f"Saving hentai ID list in \"{DOWNLOADME_FILEPATH}\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
+            with open(DOWNLOADME_FILEPATH, "wt") as hentai_ID_list_file:
                 hentai_ID_list_file.write("\n".join([str(hentai_ID) for hentai_ID in hentai_ID_list]))
-            logging.info("\rSaved hentai ID list in \"downloadme.txt\".")
+            logging.info(f"\rSaved hentai ID list in \"{DOWNLOADME_FILEPATH}\".")
         
         if len(hentai_ID_list)==0:  # if file or user input empty: retry
             continue

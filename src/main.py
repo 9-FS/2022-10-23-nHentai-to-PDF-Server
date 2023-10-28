@@ -33,9 +33,9 @@ def main():
 
 
     try:
-        cookies =json.loads(KFSconfig.load_config("cookies.json",  COOKIES_DEFAULT))    # load cookies to bypass bot protection
-        headers =json.loads(KFSconfig.load_config("headers.json",  HEADERS_DEFAULT))    # load headers to bypass bot protection
-        settings=json.loads(KFSconfig.load_config("settings.json", SETTINGS_DEFAULT))   # load settings
+        cookies =json.loads(KFSconfig.load_config("./config/cookies.json",  COOKIES_DEFAULT))   # load cookies to bypass bot protection
+        headers =json.loads(KFSconfig.load_config("./config/headers.json",  HEADERS_DEFAULT))   # load headers to bypass bot protection
+        settings=json.loads(KFSconfig.load_config("./config/settings.json", SETTINGS_DEFAULT))  # load settings
     except FileNotFoundError:
         return
     
