@@ -7,28 +7,29 @@ from KFSmedia   import KFSmedia
 from KFSsleep   import KFSsleep
 import logging
 import os
-from get_hentai_ID_list               import get_hentai_ID_list
-from Hentai                           import Hentai
+from get_hentai_ID_list import get_hentai_ID_list
+from Hentai             import Hentai
 
 
 @KFSlog.timeit
 def main():
-    cleanup_success: bool=True              # cleanup successful
-    cookies: dict[str, str]                 # for requests.get to bypass bot protection
-    COOKIES_DEFAULT: str=json.dumps({       # cookies default
+    cleanup_success: bool=True                          # cleanup successful
+    cookies: dict[str, str]                             # for requests.get to bypass bot protection
+    COOKIES_DEFAULT: str=json.dumps({                   # cookies default
         "cf_clearance": "",
         "csrftoken": "",
-    }, indent=4)      
-    headers: dict[str, str]                 # for requests.get to bypass bot protection
-    HEADERS_DEFAULT: str=json.dumps({       # headers default
+    }, indent=4)
+    DOWNLOADME_FILEPATH: str="./config/downloadme.txt"  # path to file containing hentai ID to download
+    headers: dict[str, str]                             # for requests.get to bypass bot protection
+    HEADERS_DEFAULT: str=json.dumps({                   # headers default
         "User-Agent": "",
     }, indent=4)
-    hentai: Hentai                          # individual hentai
-    hentai_ID_list: list[int]               # hentai ID to download
-    settings: dict[str, str]                # settings
-    SETTINGS_DEFAULT: str=json.dumps({      # settings default
-        "dest_path": "./hentai/",           # path to download hentai to
-        "nhentai_tag": "language:english",  # download hentai with this tag, normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"
+    hentai: Hentai                                      # individual hentai
+    hentai_ID_list: list[int]                           # hentai ID to download
+    settings: dict[str, str]                            # settings
+    SETTINGS_DEFAULT: str=json.dumps({                  # settings default
+        "dest_path": "./hentai/",                       # path to download hentai to
+        "nhentai_tag": "language:english",              # download hentai with this tag, normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"
     }, indent=4)
 
 
@@ -41,7 +42,7 @@ def main():
     
     
     while True:
-        hentai_ID_list=get_hentai_ID_list(cookies, headers, settings["nhentai_tag"])  # get desired hentai ID
+        hentai_ID_list=get_hentai_ID_list(DOWNLOADME_FILEPATH, cookies, headers, settings["nhentai_tag"])   # get desired hentai ID
         
 
         for i, hentai_ID in enumerate(hentai_ID_list):  # work through all desired hentai
@@ -71,10 +72,15 @@ def main():
             if os.path.isdir(f"{settings['dest_path']}{hentai_ID}") and len(os.listdir(f"{settings['dest_path']}{hentai_ID}"))==0:  # if cache folder still exists and is empty:
                 try:
                     os.rmdir(f"{settings['dest_path']}{hentai_ID}")                                                                 # try to clean up
-                except PermissionError:                                                                                             # may fail if another process is still using directory like dropbox
-                    logging.warning(f"Deleting \"{settings['dest_path']}{hentai_ID}/\" failed with PermissionError.")
+                except PermissionError as e:                                                                                        # may fail if another process is still using directory like dropbox
+                    logging.warning(f"Deleting \"{settings['dest_path']}{hentai_ID}/\" failed with {KFSfstr.full_class_name(e)}.")
                     cleanup_success=False                                                                                           # cleanup unsuccessful
         if cleanup_success==True:
             logging.info("\rDeleted leftover image directories.")
+        
+        try:
+            os.remove(DOWNLOADME_FILEPATH)  # delete downloaded.txt
+        except PermissionError as e:
+            logging.error(f"Deleting \"{DOWNLOADME_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}.")
 
-        KFSsleep.sleep_mod(100) # sleep until the next whole 100s
+        KFSsleep.sleep_mod(10*1000) # sleep until the next whole 10ks
