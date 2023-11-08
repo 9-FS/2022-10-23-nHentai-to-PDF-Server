@@ -5,7 +5,7 @@ license     = "MIT"
 name        = "x"                                                        # can't leave empty because of bug with `poetry install` from poetry.lock file
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/2022-10-23-nHentai-to-PDF-Server"
-version     = "2.3.5"
+version     = "2.3.6"
 
 [tool.poetry.dependencies]
 kfsconfig = "^1.0.0"
