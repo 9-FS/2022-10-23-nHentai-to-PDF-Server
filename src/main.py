@@ -83,4 +83,6 @@ def main():
         except PermissionError as e:
             logging.error(f"Deleting \"{DOWNLOADME_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}.")
 
-        KFSsleep.sleep_mod(10*1000) # sleep until the next whole 10ks
+        logging.info("Sleeping until next full 10ks...")
+        KFSsleep.sleep_mod(10*1000) # sleep until the next full 10ks
+        logging.info("\rSlept until next full 10ks.")
