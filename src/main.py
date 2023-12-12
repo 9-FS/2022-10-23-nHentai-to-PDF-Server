@@ -28,8 +28,9 @@ def main(DEBUG: bool):
     hentai_ID_list: list[int]                           # hentai ID to download
     settings: dict[str, str]                            # settings
     SETTINGS_DEFAULT: str=json.dumps({                  # settings default
-        "dest_path": "./hentai/",                       # path to download hentai to
         "nhentai_tag": "language:english",              # download hentai with this tag, normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"
+        "library_path": "./hentai/",                    # path to download hentai to
+        "library_split": "100000",                      # split library into subdirectories of maximum this many hentai, 0 to disable
     }, indent=4)
 
 
@@ -60,31 +61,31 @@ def main(DEBUG: bool):
                 logging.info(hentai)
 
             try:
-                hentai.download(settings["dest_path"])                  # download hentai
-            except FileExistsError:                                     # if hentai already exists:
-                continue                                                # skip to next hentai
+                hentai.download(settings["library_path"], int(settings["library_split"]))   # download hentai
+            except FileExistsError:                                                         # if hentai already exists:
+                continue                                                                    # skip to next hentai
             except KFSmedia.DownloadError:
-                with open("./log/FAILURES.txt", "at") as fails_file:    # append in failure file
+                with open("./log/FAILURES.txt", "at") as fails_file:                        # append in failure file
                     fails_file.write(f"{hentai.ID}\n")
-                continue                                                # skip to next hentai
+                continue                                                                    # skip to next hentai
         logging.info("--------------------------------------------------")
 
 
         Hentai.save_galleries() # save all galleries to file
 
         logging.info("Deleting leftover image directories...")
-        for hentai_ID in hentai_ID_list:                                                                                            # attempt final cleanup
-            if os.path.isdir(f"{settings['dest_path']}{hentai_ID}") and len(os.listdir(f"{settings['dest_path']}{hentai_ID}"))==0:  # if cache folder still exists and is empty:
+        for hentai_ID in hentai_ID_list:                                                                                                                                # attempt final cleanup
+            if os.path.isdir(os.path.join(settings["library_path"], str(hentai_ID))) and len(os.listdir(os.path.join(settings["library_path"], str(hentai_ID))))==0:    # if cache folder still exists and is empty:
                 try:
-                    os.rmdir(f"{settings['dest_path']}{hentai_ID}")                                                                 # try to clean up
-                except PermissionError as e:                                                                                        # may fail if another process is still using directory like dropbox
-                    logging.warning(f"Deleting \"{settings['dest_path']}{hentai_ID}/\" failed with {KFSfstr.full_class_name(e)}.")
-                    cleanup_success=False                                                                                           # cleanup unsuccessful
+                    os.rmdir(os.path.join(settings["library_path"], str(hentai_ID)))                                                                                    # try to clean up
+                except PermissionError as e:                                                                                                                            # may fail if another process is still using directory like dropbox
+                    logging.warning(f"Deleting \"{os.path.join(settings['library_path'], str(hentai_ID))}/\" failed with {KFSfstr.full_class_name(e)}.")
+                    cleanup_success=False                                                                                                                               # cleanup unsuccessful
         if cleanup_success==True:
             logging.info("\rDeleted leftover image directories.")
         
         try:
-            os.remove(DOWNLOADME_FILEPATH)  # delete downloaded.txt
+            os.remove(DOWNLOADME_FILEPATH)  # delete downloadme.txt
         except PermissionError as e:
             logging.error(f"Deleting \"{DOWNLOADME_FILEPATH}\" failed with {KFSfstr.full_class_name(e)}.")
 

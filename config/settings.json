@@ -1,4 +1,5 @@
 {
-    "dest_path": "./hentai/",
-    "nhentai_tag": "language:english"
+    "nhentai_tag": "language:english",
+    "library_path": "./hentai/",
+    "library_split": "100000"
 }
