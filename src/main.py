@@ -30,7 +30,7 @@ def main(DEBUG: bool):
     SETTINGS_DEFAULT: str=json.dumps({                  # settings default
         "nhentai_tag": "language:english",              # download hentai with this tag, normal tags are in format "tag:{tag}" for example "tag:ffm-threesome"
         "library_path": "./hentai/",                    # path to download hentai to
-        "library_split": "100000",                      # split library into subdirectories of maximum this many hentai, 0 to disable
+        "library_split": "10000",                       # split library into subdirectories of maximum this many hentai, 0 to disable
     }, indent=4)
 
 
