@@ -50,7 +50,7 @@ def get_hentai_ID_list(downloadme_filepath: str, cookies: dict[str, str], header
 
 def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[str, str], nhentai_tag: str) -> list[int]:
     """
-    Tries to return hentai ID list to download by searching on nhentai.net for all hentai ID with tag nhentai_tag.
+    Tries to return sorted hentai ID list to download by searching on nhentai.net for all hentai ID with tag nhentai_tag.
 
     Arguments:
     - cookies: cookies to send with the request to bypass bot protection
@@ -85,6 +85,7 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
             page_no_current+=1
         
     hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str)    # list[str] -> list[int], clean up data
+    hentai_ID_list=sorted(hentai_ID_list)                                                   # sort list downloaded numerically
 
     return hentai_ID_list
 
@@ -189,7 +190,7 @@ def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[s
 
 def _convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str: list[str]) -> list[int]:
     """
-    Converts list of hentai ID from list[str] to list[int] cleans up entries.
+    Converts list of hentai ID from list[str] to list[int] cleans up entries. Does not sort to respect input order.
 
     Arguments:
     - hentai_ID_list_str: list of hentai ID in str to convert
@@ -209,7 +210,5 @@ def _convert_hentai_ID_list_str_to_hentai_ID_list_int(hentai_ID_list_str: list[s
             hentai_ID_list.append(int(hentai_ID))
         except ValueError:                                                                  # if input invalid: discard that, keep rest
             logging.error(f"Converting input \"{hentai_ID}\" to int failed. Skipping ID.")
-            
-    hentai_ID_list=sorted(hentai_ID_list)                                                   # sort numerically
 
     return hentai_ID_list
