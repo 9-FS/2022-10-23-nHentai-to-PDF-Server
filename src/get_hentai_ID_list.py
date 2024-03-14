@@ -2,7 +2,7 @@
 import concurrent.futures
 import inspect
 import json
-from KFSfstr    import KFSfstr
+from KFSfstr import KFSfstr
 import requests
 import time
 import logging
@@ -32,7 +32,7 @@ def get_hentai_ID_list(downloadme_filepath: str, cookies: dict[str, str], header
             file_tried=True
             with open(downloadme_filepath, "rt") as downloadme_file:
                 hentai_ID_list=_convert_hentai_ID_list_str_to_hentai_ID_list_int(downloadme_file.read().split("\n"))    # read all hentai ID from file, list[int] -> list[str], clean up data
-        else:                                                                                                           # if ID list file not available: ask user for input
+        else:                                                                                                           # if ID list file not available:
             hentai_ID_list=_get_hentai_ID_list_from_tag_search(cookies, headers, nhentai_tag)                           # get hentai ID list by searching by tag, list[str] -> list[int], clean up data
             
             logging.info(f"Saving hentai ID list in \"{downloadme_filepath}\"...")  # save as backup in case something crashes, normal nHentai to PDF downloader could pick up if needed
@@ -69,15 +69,15 @@ def _get_hentai_ID_list_from_tag_search(cookies: dict[str, str], headers: dict[s
     page_no_max: int                    # number of pages a nhentai search by tag would return
 
 
-    search_request=requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": nhentai_tag, "sort": "popular", "page": 1}).prepare() # prepare beforehand to generate full URL from params
+    search_request=requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": nhentai_tag, "page": 1}).prepare()    # prepare beforehand to generate full URL from params
     page_no_max=_get_page_no_max_by_tag(search_request)    
-    logging.debug(f"Searching by tag\"{nhentai_tag}\" results in {KFSfstr.notation_abs(page_no_max, 0, round_static=True)} number of pages.")                               # get page_no_max by searching by tag
+    logging.debug(f"Searching by tag\"{nhentai_tag}\" results in {KFSfstr.notation_abs(page_no_max, 0, round_static=True)} number of pages.")               # get page_no_max by searching by tag
     
 
     logging.info("")
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as thread_manager:
-        search_requests=[requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": nhentai_tag, "sort": "popular", "page": page_no}).prepare() for page_no in range(1, page_no_max+1)] # prepare beforehand to generate full URL from params
-        for hentai_ID_new in thread_manager.map(_search_hentai_ID_by_tag, search_requests):                                                                                                                                     # search by tag on all pages
+        search_requests=[requests.Request("GET", NHENTAI_SEARCH_API_URL, cookies=cookies, headers=headers, params={"query": nhentai_tag, "page": page_no}).prepare() for page_no in range(1, page_no_max+1)]    # prepare beforehand to generate full URL from params
+        for hentai_ID_new in thread_manager.map(_search_hentai_ID_by_tag, search_requests):                                                                                                                     # search by tag on all pages
             hentai_ID_list_str+=hentai_ID_new
             logging.info(f"\rDownloaded hentai ID from \"{search_requests[page_no_current-1].url}\", page {KFSfstr.notation_abs(page_no_current, 0, round_static=True)}/{KFSfstr.notation_abs(page_no_max, 0, round_static=True)}.") 
             logging.debug(hentai_ID_new)
