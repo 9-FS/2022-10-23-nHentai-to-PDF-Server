@@ -1,8 +1,9 @@
 version: "3"
+
 services:
   2022-10-23-nhentai-to-pdf-server:
     container_name: 2022-10-23-nHentai-to-PDF-Server
-    image: 9-fs/2022-10-23-nhentai-to-pdf-server
+    image: 9-fs/2022-10-23-nhentai-to-pdf-server:latest
     environment:
       - HOST_OS=Unraid
       - TZ=UTC
@@ -16,4 +17,5 @@ services:
         limits:
           memory: 20G
     user: 99:100
+
 networks: {}
