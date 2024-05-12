@@ -7,6 +7,9 @@ services:
     environment:
       - HOST_OS=Unraid
       - TZ=UTC
+      - CF_CLEARANCE=
+      - CSRFTOKEN=
+      - USER_AGENT=
     volumes:
       - /mnt/user/appdata/2022-10-23-nhentai-to-pdf-server/config/:/app/config/:rw
       - /mnt/user/appdata/2022-10-23-nhentai-to-pdf-server/log/:/app/log/:rw

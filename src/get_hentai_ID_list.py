@@ -120,8 +120,8 @@ def _get_page_no_max_by_tag(search_request: requests.PreparedRequest) -> int:
             else:                                                                       # if failed 3 times: give up
                 raise
         if search_page.status_code==403:                                                # if status code 403 (forbidden): probably cookies and headers not set correctly
-            logging.critical(f"Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
-            raise requests.HTTPError(f"Error in {_search_hentai_ID_by_tag.__name__}{inspect.signature(_search_hentai_ID_by_tag)}: Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+            logging.critical(f"Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set cookies and headers correctly?")
+            raise requests.HTTPError(f"Error in {_search_hentai_ID_by_tag.__name__}{inspect.signature(_search_hentai_ID_by_tag)}: Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set cookies and headers correctly?")
         if search_page.ok==False:
             time.sleep(1)
             if attempt_no<3:                                                            # try 3 times
@@ -167,8 +167,8 @@ def _search_hentai_ID_by_tag(search_request: requests.PreparedRequest) -> list[s
             else:                                                                       # if failed 3 times: give up
                 raise
         if search_page.status_code==403:                                                # if status code 403 (forbidden): probably cookies and headers not set correctly
-            logging.critical(f"Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
-            raise requests.HTTPError(f"Error in {_search_hentai_ID_by_tag.__name__}{inspect.signature(_search_hentai_ID_by_tag)}: Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set \"cookies.json\" and \"headers.json\" correctly?")
+            logging.critical(f"Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set cookies and headers correctly?")
+            raise requests.HTTPError(f"Error in {_search_hentai_ID_by_tag.__name__}{inspect.signature(_search_hentai_ID_by_tag)}: Downloading tag search from \"{search_request.url}\" resulted in status code {search_page.status_code}. Have you set cookies and headers correctly?")
         if search_page.status_code==404:                                                # if status code 404 (not found): nhenati API is sus and randomly does not have some search result pages
             hentai_ID_list_str=[]                                                       # just return empty list
             return hentai_ID_list_str
